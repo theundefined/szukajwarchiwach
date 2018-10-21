@@ -6,10 +6,11 @@ import pickle
 import BeautifulSoup
 import re
 import sys
+import ssl
 
 url=sys.argv[1]
 #"http://www.szukajwarchiwach.pl/92/81/0/4/177/str/1/1/15#tabSkany"
-baseurl="http://www.szukajwarchiwach.pl"
+baseurl="https://www.szukajwarchiwach.pl"
 
 def download_and_cache(url):
     cachefile="/tmp/" + hashlib.md5(url).hexdigest() + ".cache"
@@ -17,7 +18,10 @@ def download_and_cache(url):
         data=pickle.load(open(cachefile,"rb"))
         print "read %s from cachefile %s" % (url,cachefile)
     except (IOError,ValueError):
-        data=urllib2.urlopen(url).read()
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        data=urllib2.urlopen(url,context=ctx).read()
         pickle.dump(data,open(cachefile,"wb"))
         print "save %s to cachefile %s" % (url,cachefile)
     return data
